@@ -58,7 +58,7 @@ namespace LlamaToolkit
             if (args.Length == 2)
             {
                 userIn = args[1];
-                bool valid = (CheckGameDirectory(userIn) && !CheckDRM(userIn));
+                bool valid = (CheckGameDirectory(userIn) && !CheckDRM(userIn) && File.Exists(replacementFile));
                 if (valid)
                 {
                     pathToGreenworks = Path.Combine(userIn, "www", "greenworks", "greenworks.js");
@@ -74,7 +74,7 @@ namespace LlamaToolkit
             }
             else
             {
-                bool valid = (CheckGameDirectory(currentDir) && !CheckDRM(currentDir));
+                bool valid = (CheckGameDirectory(currentDir) && !CheckDRM(currentDir) && File.Exists(replacementFile));
                 if (valid)
                 {
                     pathToGreenworks = Path.Combine(currentDir, "www", "greenworks", "greenworks.js");

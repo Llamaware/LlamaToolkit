@@ -17,9 +17,9 @@ The filenames of all encrypted files must be unchanged.
 
 Arguments:
 
-`inputDirectory`: Specify the input directory or file. If directory, it will traverse all folders in the directory recursively.
+`inputFileOrDir`: Specify the input directory or file. If directory, it will traverse all folders in the directory recursively.
 
-`outputDirectory`: Specify the output directory.
+`outputDir`: Specify the output directory.
 
 You must pass both arguments at once. Both relative and absolute paths are supported.
 
@@ -32,6 +32,10 @@ LlamaToolkit.exe decrypt <inputFileOrDir> <outputDir>
 ### DeDRM
 
 Allows the game to be launched without Steam.
+
+Arguments:
+
+`gameDir`: Specify the game directory.
 
 If no arguments are provided, LlamaToolkit will assume that it is currently inside of the game directory.
 

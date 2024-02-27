@@ -93,4 +93,4 @@ The deobfuscator is based on [EPJsDeOb: JavaScript Deobfuscation tool](https://g
 
 ![andrew](/docs/cs.png)
 
-*Last updated 2/24/2024 for game version 2.0.9*
+*Last updated 2/26/2024 for game version 2.0.9*

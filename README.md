@@ -55,6 +55,8 @@ The game will dump obfuscated code to a new file named `obfuscated.js` on the ne
 
 ### Deobfuscate (Manually)
 
+![abc](/docs/abc.png)
+
 Using any IDE, format the obfuscated code you obtained with the extractor.
 
 Split the obfuscated code into two files. One file will be `header.js` containing the large string array and the rotating functions. The other file `detail.js` will contain the rest of the code, beginning from the line `use strict;`

@@ -1,6 +1,8 @@
 
 # LlamaToolkit 2.0
 
+![tsunderecoded](/docs/tsun.png)
+
 A decompilation toolkit for The Coffin of Andy and Leyley. (Formerly IelmenDecryptor)
 
 ### Usage

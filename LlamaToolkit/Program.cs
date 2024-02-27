@@ -156,6 +156,7 @@ namespace LlamaToolkit
             string userIn;
             string pathToCoreEngine;
             string pathToBackup;
+            string pathToSearchText;
             string currentDir = Directory.GetCurrentDirectory();
             string replacementFile = Path.Combine(currentDir, "llama", "extractor.js");
             if (args.Length == 2)
@@ -166,9 +167,11 @@ namespace LlamaToolkit
                 {
                     pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.js");
                     pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    pathToSearchText = Path.Combine(userIn, "llama", "search.txt");
                     string[] target = File.ReadAllLines(pathToCoreEngine);
+                    string searchText = File.ReadAllText(pathToSearchText);
                     File.Move(pathToCoreEngine, pathToBackup);
-                    int targetIndex = Array.FindIndex(target, line => line.Contains("Yanfly.Core.Game_Interpreter_pluginCommand ="));
+                    int targetIndex = Array.FindIndex(target, line => line.Contains(searchText));
 
                     if (targetIndex >= 0)
                     {
@@ -183,7 +186,7 @@ namespace LlamaToolkit
                     }
                     else
                     {
-                        Console.WriteLine("Target line not found.");
+                        Console.WriteLine("Error: Target line not found!");
                     }
                 }
                 else
@@ -198,9 +201,11 @@ namespace LlamaToolkit
                 {
                     pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.js");
                     pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    pathToSearchText = Path.Combine(currentDir, "llama", "search.txt");
                     string[] target = File.ReadAllLines(pathToCoreEngine);
+                    string searchText = File.ReadAllText(pathToSearchText);
                     File.Move(pathToCoreEngine, pathToBackup);
-                    int targetIndex = Array.FindIndex(target, line => line.Contains("Yanfly.Core.Game_Interpreter_pluginCommand ="));
+                    int targetIndex = Array.FindIndex(target, line => line.Contains(searchText));
 
                     if (targetIndex >= 0)
                     {
@@ -215,7 +220,7 @@ namespace LlamaToolkit
                     }
                     else
                     {
-                        Console.WriteLine("Target line not found.");
+                        Console.WriteLine("Error: Target line not found!");
                     }
                 }
                 else

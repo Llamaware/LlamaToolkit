@@ -64,7 +64,7 @@ Run the contents of `detail.js` through [Obfuscator.io Deobfuscator](https://obf
 Then run LlamaToolkit `deob` on both files, giving it the name of the replacement function (in this case, it's `_0x59166b`).
 
 ```
-LlamaToolkit.exe deob _0x59166b header.js detail.js
+LlamaToolkit deob _0x59166b header.js detail.js
 ```
 
 All calls to that function will be deobfuscated, and hexadecimal numbers will be replaced with decimal numbers. The new file will be saved to `detail-result.js`.

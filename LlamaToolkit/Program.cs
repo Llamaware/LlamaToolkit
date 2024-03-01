@@ -1,18 +1,28 @@
-﻿using Microsoft.ClearScript.V8;
-using System.Text.RegularExpressions;
+﻿using Jering.Javascript.NodeJS;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace LlamaToolkit
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            string firstLine = args[0].ToLower();
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            string firstLine;
+            if (args.Length < 1)
+            {
+                firstLine = "default";
+            }
+            else
+            {
+                firstLine = args[0].ToLower();
+            }
+            var watch = Stopwatch.StartNew();
             switch (firstLine)
             {
                 case "decrypt":
-                    Decrypt(args);
+                    await Decrypt(args);
                     break;
                 case "dedrm":
                     DeDRM(args);
@@ -27,20 +37,24 @@ namespace LlamaToolkit
                     Restore(args);
                     break;
                 case "deob":
-                    Deobfuscate(args);
+                    await Deobfuscate(args);
+                    break;
+                case "autopwn":
+                    await Autopwn(args);
                     break;
                 default:
                     Console.WriteLine("LlamaToolkit 2.0 for TCAL version 2.0.9");
                     Console.WriteLine("Usage: LlamaToolkit <mode> <arguments>");
-                    Console.WriteLine("Modes: decrypt, dedrm, redrm, extract, restore, deob");
+                    Console.WriteLine("Modes: decrypt, dedrm, redrm, autopwn, extract, restore, deob");
                     Console.WriteLine("Decryption: LlamaToolkit decrypt <inputFileOrDir> <outputDir>");
                     Console.WriteLine("DeDRM: LlamaToolkit dedrm <gameDir>");
                     Console.WriteLine("ReDRM: LlamaToolkit redrm <gameDir>");
+                    Console.WriteLine("Autopwn: LlamaToolkit autopwn <gameDir>");
+                    Console.WriteLine("If no arguments are provided, LlamaToolkit will assume it is inside of the game directory (containing game.exe).");
+                    Console.WriteLine("---MANUAL DEOBFUSCATION TOOLS---");
                     Console.WriteLine("Extract: LlamaToolkit extract <gameDir>");
                     Console.WriteLine("Restore: LlamaToolkit restore <gameDir>");
-                    Console.WriteLine("If no arguments are provided, LlamaToolkit will assume it is inside of the game directory (containing game.exe).");
-                    Console.WriteLine("Deobfuscate: LlamaToolkit deob <func> <in hdr file> <in dtl file>");
-                    Console.WriteLine("You must run the extracted code through obf-io.deobfuscate.io before processing it with LlamaToolkit. See README for details.");
+                    Console.WriteLine("Deobfuscate: LlamaToolkit deob <inputFile>");
                     break;
             }
             watch.Stop();
@@ -50,7 +64,7 @@ namespace LlamaToolkit
 
         static bool CheckGameDirectory(string folder)
         {
-            string game = Path.Combine(folder, "game.exe");
+            string game = Path.Combine(folder, "Game.exe");
             string nw = Path.Combine(folder, "nw.exe");
             bool inGameDir = (File.Exists(game) || File.Exists(nw));
             return inGameDir;
@@ -63,20 +77,19 @@ namespace LlamaToolkit
 
         static bool CheckCoreEngine(string folder)
         {
-            string coreEngine = Path.Combine(folder, "www", "js", "plugins","YEP_CoreEngine.bak");
+            string coreEngine = Path.Combine(folder, "www", "js", "plugins", "YEP_CoreEngine.bak");
             return File.Exists(coreEngine);
         }
 
         static void DeDRM(string[] args)
         {
-            string userIn;
             string pathToGreenworks;
             string pathToBackup;
             string currentDir = Directory.GetCurrentDirectory();
             string replacementFile = Path.Combine(currentDir, "llama", "greenworks.js");
             if (args.Length == 2)
             {
-                userIn = args[1];
+                string userIn = args[1];
                 bool valid = (CheckGameDirectory(userIn) && !CheckDRM(userIn) && File.Exists(replacementFile));
                 if (valid)
                 {
@@ -111,14 +124,13 @@ namespace LlamaToolkit
 
         static void ReDRM(string[] args)
         {
-            string userIn;
             string pathToGreenworks;
             string pathToBackup;
             string currentDir = Directory.GetCurrentDirectory();
             string replacementFile = Path.Combine(currentDir, "www", "greenworks", "greenworks.bak");
             if (args.Length == 2)
             {
-                userIn = args[1];
+                string userIn = args[1];
                 bool valid = (CheckGameDirectory(userIn) && CheckDRM(userIn) && File.Exists(replacementFile));
                 if (valid)
                 {
@@ -153,7 +165,6 @@ namespace LlamaToolkit
 
         static void Extract(string[] args)
         {
-            string userIn;
             string pathToCoreEngine;
             string pathToBackup;
             string pathToSearchText;
@@ -161,7 +172,7 @@ namespace LlamaToolkit
             string replacementFile = Path.Combine(currentDir, "llama", "extractor.js");
             if (args.Length == 2)
             {
-                userIn = args[1];
+                string userIn = args[1];
                 bool valid = (CheckGameDirectory(userIn) && !CheckCoreEngine(userIn) && File.Exists(replacementFile));
                 if (valid)
                 {
@@ -191,7 +202,7 @@ namespace LlamaToolkit
                 }
                 else
                 {
-                    Console.WriteLine("Error: Game not found, or extractor is already installed!");
+                    Console.WriteLine("Error: Game not found, or extractor was already installed!");
                 }
             }
             else
@@ -225,22 +236,22 @@ namespace LlamaToolkit
                 }
                 else
                 {
-                    Console.WriteLine("Error: Game not found, or extractor is already installed!");
+                    Console.WriteLine("Error: Game not found, or extractor was already installed!");
                 }
             }
         }
 
         static void Restore(string[] args)
         {
-            string userIn;
             string pathToCoreEngine;
             string pathToBackup;
             string currentDir = Directory.GetCurrentDirectory();
-            string replacementFile = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+            string replacementFile;
             if (args.Length == 2)
             {
-                userIn = args[1];
-                bool valid = (CheckGameDirectory(userIn) && CheckCoreEngine(userIn) && File.Exists(replacementFile));
+                string userIn = args[1];
+                replacementFile = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                bool valid = (CheckGameDirectory(userIn) && CheckCoreEngine(userIn));
                 if (valid)
                 {
                     pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.js");
@@ -249,14 +260,19 @@ namespace LlamaToolkit
                     File.Move(pathToBackup, pathToCoreEngine);
                     Console.WriteLine("Extractor removed from game.");
                 }
-                else
+                else if (!CheckGameDirectory(userIn))
                 {
-                    Console.WriteLine("Error: Game not found, or extractor was not installed!");
+                    Console.WriteLine("Error: Game not found!");
+                }
+                else if (!CheckCoreEngine(userIn))
+                {
+                    Console.WriteLine("Error: Extractor was not installed!");
                 }
             }
             else
             {
-                bool valid = (CheckGameDirectory(currentDir) && CheckCoreEngine(currentDir) && File.Exists(replacementFile));
+                replacementFile = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                bool valid = (CheckGameDirectory(currentDir) && CheckCoreEngine(currentDir));
                 if (valid)
                 {
                     pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.js");
@@ -265,9 +281,13 @@ namespace LlamaToolkit
                     File.Move(pathToBackup, pathToCoreEngine);
                     Console.WriteLine("Extractor removed from game.");
                 }
-                else
+                else if (!CheckGameDirectory(currentDir))
                 {
-                    Console.WriteLine("Error: Game not found, or extractor was not installed!");
+                    Console.WriteLine("Error: Game not found!");
+                }
+                else if (!CheckCoreEngine(currentDir))
+                {
+                    Console.WriteLine("Error: Extractor was not installed!");
                 }
             }
         }
@@ -277,7 +297,7 @@ namespace LlamaToolkit
             Console.WriteLine("Error: Decoded signature doesn't match file header! Is the key wrong or the input file not encrypted?");
             Console.WriteLine("Decryption aborted. File was NOT decrypted: " + userIn);
         }
-        static void Decrypt(string[] args)
+        static async Task Decrypt(string[] args)
         {
             if (args.Length == 3)
             {
@@ -305,8 +325,8 @@ namespace LlamaToolkit
                 }
                 else if (Directory.Exists(userIn))
                 {
-                    DecryptFolder(userIn, dirOutput);
-                    Console.WriteLine("Directory processed: " + userIn);
+                    Console.WriteLine("Processing directory: " + userIn);
+                    await DecryptFolder(userIn, dirOutput);
                 }
                 else
                 {
@@ -320,19 +340,21 @@ namespace LlamaToolkit
                 {
                     string[] dirInputs = [Path.Combine("www", "img"), Path.Combine("www", "audio"), Path.Combine("www", "data")];
                     string dirOutput = "decrypted";
+                    IList<Task> folderTaskList = new List<Task>();
                     foreach (string folder in dirInputs)
                     {
                         string fullFolderPath = Path.Combine(Directory.GetCurrentDirectory(), folder);
                         if (Directory.Exists(fullFolderPath))
                         {
-                            DecryptFolder(fullFolderPath, dirOutput);
-                            Console.WriteLine("Directory processed: " + folder);
+                            Console.WriteLine("Processing directory: " + folder);
+                            folderTaskList.Add(DecryptFolder(fullFolderPath, dirOutput));
                         }
                         else
                         {
                             Console.WriteLine("Error: Directory does not exist: " + folder);
                         }
                     }
+                    await Task.WhenAll(folderTaskList);
                 }
                 else
                 {
@@ -341,88 +363,98 @@ namespace LlamaToolkit
             }
         }
 
-        static void Deobfuscate(string[] args)
+        static async Task Deobfuscate(string[] args)
         {
-            Console.WriteLine("JavaScript DeObfuscator by Script Replacement.");
-            if (args == null || args.Length < 4)
+            string filename;
+            if (args.Length != 2)
             {
-                Console.WriteLine("Usage: LlamaToolkit deob <func> <in hdr file> <in dtl file>");
-                Console.WriteLine("Example: LlamaToolkit deob _0x59166b header.js detail.js");
-                Console.WriteLine("_0x59166b -> function name to be replaced.");
-                Console.WriteLine("header.js -> contains string initialize and function declaration.");
-                Console.WriteLine("detail.js -> contains script to be replaced.");
-                Console.WriteLine("The processed script will be put into <detail file name>-result.js.");
+                Console.WriteLine("Usage: LlamaToolkit deob <inputFile>");
+                Console.WriteLine("Example: LlamaToolkit deob input.js");
+                Console.WriteLine("The processed script will be put into output.js.");
                 return;
             }
-            string sFunc = args[1];
-            if (!File.Exists(args[2]))
+            else
             {
-                Console.WriteLine("Error: File " + args[1] + " not found.");
-                return;
+                filename = args[1];
             }
-            string sHdrFile = args[2];
-            if (!File.Exists(args[3]))
+
+            Console.WriteLine("Starting deobfuscation.");
+            string currentDir = Directory.GetCurrentDirectory();
+            string jsModule = Path.Combine(currentDir, "llama", "decode-js", "src", "plugin", "obfuscator2.js");
+
+            var services = new ServiceCollection();
+
+            services.AddNodeJS();
+            services.Configure<NodeJSProcessOptions>(options => options.ProjectPath = currentDir);
+            services.AddLogging(opt =>
             {
-                Console.WriteLine("Error: File " + args[3] + " not found.");
-                return;
-            }
-            string sDtlFile = args[3];
+                opt.SetMinimumLevel(LogLevel.Information)
+                   .AddSimpleConsole();
+            });
+            StaticNodeJSService.SetServices(services);
 
-            ProcessScript(sFunc, sHdrFile, sDtlFile);
+            string script = File.ReadAllText(filename);
+
+            string? result = await StaticNodeJSService.InvokeFromFileAsync<string>(jsModule, args: new[] { script });
+
+            string output = "output.js";
+            File.WriteAllText(output, result);
+            Console.WriteLine("File written to output.js.");
         }
 
-        static void ProcessScript(string sFunc, string sHdrFile, string sDtlFile)
+        static async Task Autopwn(string[] args)
         {
-            string sFileResult = Path.GetFileNameWithoutExtension(sDtlFile) + "-result.js";
-            string sHdrScript = File.ReadAllText(sHdrFile);
-            string sRScript = File.ReadAllText(sDtlFile);
-
-            V8ScriptEngine v8 = new V8ScriptEngine();
-            V8Script myScript = v8.Compile(sHdrScript);
-            v8.Execute(myScript);
-
-            string sRegex = "(" + sFunc + @"\(0[xX][0-9A-Fa-f]+\))";
-            MatchCollection arMatches = Regex.Matches(sRScript, sRegex);
-            int nI;
-            string sMatchVal, sRes;
-            for (nI = 0; nI < arMatches.Count; nI++)
+            Console.WriteLine("Starting autopwn.");
+            string currentDir = Directory.GetCurrentDirectory();
+            string pathToGameExe;
+            string pathToInput;
+            if (args.Length == 2)
             {
-                sMatchVal = arMatches[nI].Value;
-                Console.WriteLine("Processing " + sMatchVal);
-                sRes = v8.ExecuteCommand(sMatchVal);
-                sRScript = sRScript.Replace(arMatches[nI].Value, ToLiteral(sRes));
+                string userIn = args[1];
+                if (CheckGameDirectory(userIn))
+                {
+                    pathToGameExe = Path.Combine(userIn, "Game.exe");
+                    pathToInput = Path.Combine(userIn, "input.js");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found!");
+                    return;
+                }
             }
-            v8.Dispose();
-
-            Console.WriteLine("Converting hexadecimal numbers to decimal.");
-            string pattern = @"(?<!_)(0x[0-9A-Fa-f]+)";
-            MatchEvaluator evaluator = new MatchEvaluator(ConvertHexToDecimal);
-            string replacedContent = Regex.Replace(sRScript, pattern, evaluator);
-
-            File.WriteAllText(sFileResult, replacedContent);
-            Console.WriteLine("Output file saved.");
-            return;
+            else
+            {
+                if (CheckGameDirectory(currentDir))
+                {
+                    pathToGameExe = Path.Combine(currentDir, "Game.exe");
+                    pathToInput = Path.Combine(currentDir, "input.js");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found!");
+                    return;
+                }
+            }
+            Extract(args);
+            using (Process myProcess = Process.Start(pathToGameExe))
+            {
+                Thread.Sleep(3000);
+                myProcess.CloseMainWindow();
+                myProcess.Close();
+            }
+            Restore(args);
+            string[] input = ["hoge", pathToInput];
+            await Deobfuscate(input);
+            Console.WriteLine("Autopwn completed.");
         }
 
-        static string ToLiteral(string valueTextForCompiler)
-        {
-            return Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(valueTextForCompiler, false);
-        }
-
-        static string ConvertHexToDecimal(Match match)
-        {
-            string hexNumber = match.Value;
-            hexNumber = hexNumber.Substring(2);
-            int decimalNumber = Convert.ToInt32(hexNumber, 16);
-            return decimalNumber.ToString();
-        }
-
-        static void DecryptFolder(string dirInput, string dirOutput)
+        static async Task DecryptFolder(string dirInput, string dirOutput)
         {
             string[] fileList = GetFiles(dirInput, "*.png|*.ogg|*.json", SearchOption.AllDirectories);
+            IList<Task> writeTaskList = new List<Task>();
             foreach (string f in fileList)
             {
-                byte[] rawData = File.ReadAllBytes(f);
+                byte[] rawData = await File.ReadAllBytesAsync(f);
                 byte[] decryptedFile = DecryptFile(rawData, f);
                 if (decryptedFile.Length == 1)
                 {
@@ -430,16 +462,17 @@ namespace LlamaToolkit
                 }
                 else
                 {
-                    string decryptedFilename = Path.Combine(dirOutput, Path.GetFileName(f));
+                    string decryptedFilename = Path.Combine(dirOutput, Path.GetRelativePath(Directory.GetCurrentDirectory(), f));
                     string? directoryToCreate = Path.GetDirectoryName(decryptedFilename);
                     if (directoryToCreate != null)
                     {
-                        Directory.CreateDirectory(directoryToCreate);
+                        await Task.Run(() => Directory.CreateDirectory(directoryToCreate));
                     }
-                    File.WriteAllBytes(decryptedFilename, decryptedFile);
+                    writeTaskList.Add(File.WriteAllBytesAsync(decryptedFilename, decryptedFile));
                     Console.WriteLine("File decrypted and saved to: " + decryptedFilename);
                 }
             }
+            await Task.WhenAll(writeTaskList);
         }
         static uint Mask(string inputString)
         {
@@ -502,6 +535,5 @@ namespace LlamaToolkit
             string sig = "00000NEMLEI00000";
             return sig;
         }
-
     }
 }

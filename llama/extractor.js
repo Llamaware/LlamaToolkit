@@ -8,7 +8,7 @@ function _() {
   _0x7cbe1a.textContent = _0x505f51.toString("utf-8");
   ;
   document.body.appendChild(_0x7cbe1a);
-  fs.writeFile('obfuscated.js', _0x7cbe1a.textContent, err => {
+  fs.writeFile('input.js', _0x7cbe1a.textContent, err => {
     if (err) {
       console.error(err);
     } else {}

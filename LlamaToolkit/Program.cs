@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Text;
 
 namespace LlamaToolkit
 {
@@ -43,7 +44,7 @@ namespace LlamaToolkit
                     await Autopwn(args);
                     break;
                 default:
-                    Console.WriteLine("LlamaToolkit 2.0 for TCAL version 2.0.9");
+                    Console.WriteLine("LlamaToolkit 2.0 for TCAL version 2.0.10");
                     Console.WriteLine("Usage: LlamaToolkit <mode> <arguments>");
                     Console.WriteLine("Modes: decrypt, dedrm, redrm, autopwn, extract, restore, deob");
                     Console.WriteLine("Decryption: LlamaToolkit decrypt <inputFileOrDir> <outputDir>");
@@ -77,7 +78,7 @@ namespace LlamaToolkit
 
         static bool CheckCoreEngine(string folder)
         {
-            string coreEngine = Path.Combine(folder, "www", "js", "plugins", "YEP_CoreEngine.bak");
+            string coreEngine = Path.Combine(folder, "www", "js", "plugins", "NonCombatMenu.bak");
             return File.Exists(coreEngine);
         }
 
@@ -176,8 +177,8 @@ namespace LlamaToolkit
                 bool valid = (CheckGameDirectory(userIn) && !CheckCoreEngine(userIn) && File.Exists(replacementFile));
                 if (valid)
                 {
-                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.js");
-                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.js");
+                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.bak");
                     pathToSearchText = Path.Combine(userIn, "llama", "search.txt");
                     string[] target = File.ReadAllLines(pathToCoreEngine);
                     string searchText = File.ReadAllText(pathToSearchText);
@@ -186,14 +187,22 @@ namespace LlamaToolkit
 
                     if (targetIndex >= 0)
                     {
-                        Array.Copy(target, targetIndex + 2, target, targetIndex, target.Length - targetIndex - 2);
-                        Array.Resize(ref target, target.Length - 2);
-                        string[] extractor = File.ReadAllLines(replacementFile);
-                        Array.Resize(ref target, target.Length + extractor.Length);
-                        Array.Copy(target, targetIndex, target, targetIndex + extractor.Length, target.Length - targetIndex - extractor.Length);
-                        Array.Copy(extractor, 0, target, targetIndex, extractor.Length);
-                        File.WriteAllLines(pathToCoreEngine, target);
-                        Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
+                        int lineToDeleteIndex = targetIndex + 5;
+                        if (lineToDeleteIndex < target.Length)
+                        {
+                            Array.Copy(target, lineToDeleteIndex + 1, target, lineToDeleteIndex, target.Length - lineToDeleteIndex - 1);
+                            Array.Resize(ref target, target.Length - 1);
+                            string[] extractor = File.ReadAllLines(replacementFile);
+                            Array.Resize(ref target, target.Length + extractor.Length);
+                            Array.Copy(target, lineToDeleteIndex, target, lineToDeleteIndex + extractor.Length, target.Length - lineToDeleteIndex - extractor.Length);
+                            Array.Copy(extractor, 0, target, lineToDeleteIndex, extractor.Length);
+                            File.WriteAllLines(pathToCoreEngine, target);
+                            Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Error: Not enough lines after the target line to delete and replace.");
+                        }
                     }
                     else
                     {
@@ -210,8 +219,8 @@ namespace LlamaToolkit
                 bool valid = (CheckGameDirectory(currentDir) && !CheckCoreEngine(currentDir) && File.Exists(replacementFile));
                 if (valid)
                 {
-                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.js");
-                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.js");
+                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.bak");
                     pathToSearchText = Path.Combine(currentDir, "llama", "search.txt");
                     string[] target = File.ReadAllLines(pathToCoreEngine);
                     string searchText = File.ReadAllText(pathToSearchText);
@@ -220,14 +229,22 @@ namespace LlamaToolkit
 
                     if (targetIndex >= 0)
                     {
-                        Array.Copy(target, targetIndex + 2, target, targetIndex, target.Length - targetIndex - 2);
-                        Array.Resize(ref target, target.Length - 2);
-                        string[] extractor = File.ReadAllLines(replacementFile);
-                        Array.Resize(ref target, target.Length + extractor.Length);
-                        Array.Copy(target, targetIndex, target, targetIndex + extractor.Length, target.Length - targetIndex - extractor.Length);
-                        Array.Copy(extractor, 0, target, targetIndex, extractor.Length);
-                        File.WriteAllLines(pathToCoreEngine, target);
-                        Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
+                        int lineToDeleteIndex = targetIndex + 5;
+                        if (lineToDeleteIndex < target.Length)
+                        {
+                            Array.Copy(target, lineToDeleteIndex + 1, target, lineToDeleteIndex, target.Length - lineToDeleteIndex - 1);
+                            Array.Resize(ref target, target.Length - 1);
+                            string[] extractor = File.ReadAllLines(replacementFile);
+                            Array.Resize(ref target, target.Length + extractor.Length);
+                            Array.Copy(target, lineToDeleteIndex, target, lineToDeleteIndex + extractor.Length, target.Length - lineToDeleteIndex - extractor.Length);
+                            Array.Copy(extractor, 0, target, lineToDeleteIndex, extractor.Length);
+                            File.WriteAllLines(pathToCoreEngine, target);
+                            Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Error: Not enough lines after the target line to delete and replace.");
+                        }
                     }
                     else
                     {
@@ -250,12 +267,12 @@ namespace LlamaToolkit
             if (args.Length == 2)
             {
                 string userIn = args[1];
-                replacementFile = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                replacementFile = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.bak");
                 bool valid = (CheckGameDirectory(userIn) && CheckCoreEngine(userIn));
                 if (valid)
                 {
-                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.js");
-                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.js");
+                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.bak");
                     File.Delete(pathToCoreEngine);
                     File.Move(pathToBackup, pathToCoreEngine);
                     Console.WriteLine("Extractor removed from game.");
@@ -271,12 +288,12 @@ namespace LlamaToolkit
             }
             else
             {
-                replacementFile = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                replacementFile = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.bak");
                 bool valid = (CheckGameDirectory(currentDir) && CheckCoreEngine(currentDir));
                 if (valid)
                 {
-                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.js");
-                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.js");
+                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.bak");
                     File.Delete(pathToCoreEngine);
                     File.Move(pathToBackup, pathToCoreEngine);
                     Console.WriteLine("Extractor removed from game.");
@@ -294,8 +311,7 @@ namespace LlamaToolkit
 
         static void DecryptionFailure(string userIn)
         {
-            Console.WriteLine("Error: Decoded signature doesn't match file header! Is the key wrong or the input file not encrypted?");
-            Console.WriteLine("Decryption aborted. File was NOT decrypted: " + userIn);
+            Console.WriteLine("Decryption failed. File was NOT decrypted: " + userIn);
         }
         static async Task Decrypt(string[] args)
         {
@@ -306,6 +322,7 @@ namespace LlamaToolkit
                 if (File.Exists(userIn))
                 {
                     byte[] rawData = File.ReadAllBytes(userIn);
+                    string fileExtension = GetFileExtension(rawData);
                     byte[] decryptedFile = DecryptFile(rawData, userIn);
                     if (decryptedFile.Length == 1)
                     {
@@ -319,8 +336,9 @@ namespace LlamaToolkit
                         {
                             Directory.CreateDirectory(directoryToCreate);
                         }
-                        File.WriteAllBytes(decryptedFilename, decryptedFile);
-                        Console.WriteLine("Single file decrypted and saved to: " + decryptedFilename);
+                        string newFilename = Path.ChangeExtension(decryptedFilename, fileExtension);
+                        File.WriteAllBytes(newFilename, decryptedFile);
+                        Console.WriteLine("Single file decrypted and saved to: " + newFilename);
                     }
                 }
                 else if (Directory.Exists(userIn))
@@ -450,11 +468,12 @@ namespace LlamaToolkit
 
         static async Task DecryptFolder(string dirInput, string dirOutput)
         {
-            string[] fileList = GetFiles(dirInput, "*.png|*.ogg|*.json", SearchOption.AllDirectories);
+            string[] fileList = GetFiles(dirInput, "*.k9a", SearchOption.AllDirectories);
             IList<Task> writeTaskList = new List<Task>();
             foreach (string f in fileList)
             {
                 byte[] rawData = await File.ReadAllBytesAsync(f);
+                string fileExtension = GetFileExtension(rawData);
                 byte[] decryptedFile = DecryptFile(rawData, f);
                 if (decryptedFile.Length == 1)
                 {
@@ -468,15 +487,22 @@ namespace LlamaToolkit
                     {
                         await Task.Run(() => Directory.CreateDirectory(directoryToCreate));
                     }
-                    writeTaskList.Add(File.WriteAllBytesAsync(decryptedFilename, decryptedFile));
-                    Console.WriteLine("File decrypted and saved to: " + decryptedFilename);
+                    string newFilename = Path.ChangeExtension(decryptedFilename, fileExtension);
+                    writeTaskList.Add(File.WriteAllBytesAsync(newFilename, decryptedFile));
+                    Console.WriteLine("File decrypted and saved to: " + newFilename);
                 }
             }
             await Task.WhenAll(writeTaskList);
         }
-        static uint Mask(string inputString)
+
+        static string GetFileExtension(byte[] data)
         {
-            uint maskValue = 0;
+            int headerLength = data[0];
+            return Encoding.ASCII.GetString(data, 1, headerLength);
+        }
+        static int Mask(string inputString)
+        {
+            int maskValue = 0;
             string decodedFilename = Path.GetFileNameWithoutExtension(inputString).ToUpper();
             foreach (char c in decodedFilename)
             {
@@ -484,56 +510,40 @@ namespace LlamaToolkit
             }
             return maskValue;
         }
-        static byte[] DecryptFile(byte[] inputData, string key)
+        static byte[] DecryptFile(byte[] data, string url)
         {
-            uint maskValue = Mask(key);
-            int signatureLength = Signature().Length;
-            byte[] slicedInput = new byte[signatureLength];
-            Buffer.BlockCopy(inputData, 0, slicedInput, 0, signatureLength);
-            byte[] decodedChars = new byte[signatureLength];
-
-            for (int i = 0; i < signatureLength; i++)
+            if (!url.EndsWith(".k9a"))
             {
-                char c = Signature()[i];
-                uint temp = (c ^ maskValue) % 0x100;
-                decodedChars[i] = (byte)temp;
-            }
-
-            if (!Enumerable.SequenceEqual(slicedInput, decodedChars))
-            {
-                byte[] empty = [0];
+                Console.WriteLine("Not a .k9a file, skipping...");
+                byte[] empty = { 0 };
                 return empty;
             }
 
-            byte[] remainingData = new byte[inputData.Length - signatureLength - 1];
-            Buffer.BlockCopy(inputData, signatureLength + 1, remainingData, 0, remainingData.Length);
+            int headerLength = data[0];
+            int dataLength = data[1 + headerLength];
+            byte[] encryptedData = new byte[data.Length - 2 - headerLength];
+            Array.Copy(data, 2 + headerLength, encryptedData, 0, encryptedData.Length);
+            int newMask = Mask(url);
 
-            byte zeroIndexValue = inputData[signatureLength];
-            int decryptionLength = Convert.ToInt32(zeroIndexValue);
-
-            if (zeroIndexValue == 0)
+            if (dataLength == 0)
             {
-                decryptionLength = remainingData.Length;
+                dataLength = encryptedData.Length;
             }
 
-            for (int i = 0; i < decryptionLength; i++)
+            byte[] decryptedData = encryptedData;
+
+            for (int i = 0; i < dataLength; i++)
             {
-                byte temp = remainingData[i];
-                uint decryptedByte = (remainingData[i] ^ maskValue) % 0x100;
-                remainingData[i] = (byte)decryptedByte;
-                maskValue = (maskValue << 1) ^ temp;
+                byte encryptedByte = encryptedData[i];
+                decryptedData[i] = (byte)((encryptedByte ^ newMask) % 256);
+                newMask = newMask << 1 ^ encryptedByte;
             }
 
-            return remainingData;
+            return decryptedData;
         }
         static string[] GetFiles(string sourceFolder, string filters, SearchOption searchOption)
         {
             return filters.Split('|').SelectMany(filter => Directory.GetFiles(sourceFolder, filter, searchOption)).ToArray();
-        }
-        static string Signature()
-        {
-            string sig = "00000NEMLEI00000";
-            return sig;
         }
     }
 }

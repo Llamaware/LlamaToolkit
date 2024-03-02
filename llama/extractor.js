@@ -1,14 +1,14 @@
+};
 const fs = require('fs');
-Yanfly.Core.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
 function _() {
-  let _0x3d08d6 = _0xf9cae6_() + _0x8f7a66_() + _0x6ddd86_() + _0xc1284a_() + _0xcc1105_() + _0x25f88e_() + _0x2f2bcf_();
-  let _0x15c555 = Buffer.from(_0x3d08d6, 'base64');
-  let _0x505f51 = require("zlib").inflateSync(_0x15c555);
-  let _0x7cbe1a = document.createElement('script');
-  _0x7cbe1a.textContent = _0x505f51.toString("utf-8");
+  let _0xe4dd88_ = _0x28e742_() + _0xeed7a9_() + _0x7abe2b_() + _0x8e8708_() + _0xfcba9b_() + _0xf85c38_();
+  let _0xb1ed44_ = Buffer.from(_0xe4dd88_, 'base64');
+  let _0x8540c3_ = require("zlib").inflateSync(_0xb1ed44_);
+  let _0x19f181_ = document.createElement('script');
+  _0x19f181_.textContent = _0x8540c3_.toString("utf-8");
   ;
-  document.body.appendChild(_0x7cbe1a);
-  fs.writeFile('input.js', _0x7cbe1a.textContent, err => {
+  document.body.appendChild(_0x19f181_);
+  fs.writeFile('input.js', _0x19f181_.textContent, err => {
     if (err) {
       console.error(err);
     } else {}

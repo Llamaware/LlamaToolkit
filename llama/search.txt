@@ -1,1 +1,1 @@
-Yanfly.Core.Game_Interpreter_pluginCommand =
+Window_NCMenu.prototype.makeCommandList = function() {

@@ -23,7 +23,7 @@ LlamaToolkit <mode> <arguments>
 
 ### Decrypt
 
-The filenames of all encrypted files must be unchanged.
+Only `.k9a` files can be decrypted. The filenames of all encrypted files must be unchanged.
 
 Arguments:
 
@@ -115,4 +115,4 @@ The deobfuscator uses [decode-js](https://github.com/echo094/decode-js), which i
 
 ![andrew](/docs/cs.png)
 
-*Last updated 3/01/2024 for game version 2.0.9*
+*Last updated 3/01/2024 for game version 2.0.10*

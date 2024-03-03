@@ -44,7 +44,7 @@ namespace LlamaToolkit
                     await Autopwn(args);
                     break;
                 default:
-                    Console.WriteLine("LlamaToolkit 2.0 for TCAL version 2.0.10");
+                    Console.WriteLine("LlamaToolkit 2.0 for TCAL version 2.0.11");
                     Console.WriteLine("Usage: LlamaToolkit <mode> <arguments>");
                     Console.WriteLine("Modes: decrypt, dedrm, redrm, autopwn, extract, restore, deob");
                     Console.WriteLine("Decryption: LlamaToolkit decrypt <inputFileOrDir> <outputDir>");
@@ -76,9 +76,9 @@ namespace LlamaToolkit
             return File.Exists(greenworks);
         }
 
-        static bool CheckCoreEngine(string folder)
+        static bool CheckBackupTargetFile(string folder, string filename)
         {
-            string coreEngine = Path.Combine(folder, "www", "js", "plugins", "NonCombatMenu.bak");
+            string coreEngine = Path.Combine(folder, "www", "js", "plugins", filename);
             return File.Exists(coreEngine);
         }
 
@@ -168,26 +168,24 @@ namespace LlamaToolkit
         {
             string pathToCoreEngine;
             string pathToBackup;
-            string pathToSearchText;
             string currentDir = Directory.GetCurrentDirectory();
+            string pathToSearchText = Path.Combine(currentDir, "llama", "search.txt");
             string replacementFile = Path.Combine(currentDir, "llama", "extractor.js");
+            string[] searchText = File.ReadAllLines(pathToSearchText);
             if (args.Length == 2)
             {
                 string userIn = args[1];
-                bool valid = (CheckGameDirectory(userIn) && !CheckCoreEngine(userIn) && File.Exists(replacementFile));
+                bool valid = (CheckGameDirectory(userIn) && !CheckBackupTargetFile(userIn, searchText[1]) && File.Exists(replacementFile));
                 if (valid)
                 {
-                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.js");
-                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.bak");
-                    pathToSearchText = Path.Combine(userIn, "llama", "search.txt");
+                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", searchText[0]);
+                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", searchText[1]);
                     string[] target = File.ReadAllLines(pathToCoreEngine);
-                    string searchText = File.ReadAllText(pathToSearchText);
                     File.Move(pathToCoreEngine, pathToBackup);
-                    int targetIndex = Array.FindIndex(target, line => line.Contains(searchText));
-
+                    int targetIndex = Array.FindIndex(target, line => line.Contains(searchText[2]));
                     if (targetIndex >= 0)
                     {
-                        int lineToDeleteIndex = targetIndex + 5;
+                        int lineToDeleteIndex = targetIndex + int.Parse(searchText[3]);
                         if (lineToDeleteIndex < target.Length)
                         {
                             Array.Copy(target, lineToDeleteIndex + 1, target, lineToDeleteIndex, target.Length - lineToDeleteIndex - 1);
@@ -216,20 +214,17 @@ namespace LlamaToolkit
             }
             else
             {
-                bool valid = (CheckGameDirectory(currentDir) && !CheckCoreEngine(currentDir) && File.Exists(replacementFile));
+                bool valid = (CheckGameDirectory(currentDir) && !CheckBackupTargetFile(currentDir, searchText[1]) && File.Exists(replacementFile));
                 if (valid)
                 {
-                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.js");
-                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.bak");
-                    pathToSearchText = Path.Combine(currentDir, "llama", "search.txt");
+                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", searchText[0]);
+                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", searchText[1]);
                     string[] target = File.ReadAllLines(pathToCoreEngine);
-                    string searchText = File.ReadAllText(pathToSearchText);
                     File.Move(pathToCoreEngine, pathToBackup);
-                    int targetIndex = Array.FindIndex(target, line => line.Contains(searchText));
-
+                    int targetIndex = Array.FindIndex(target, line => line.Contains(searchText[2]));
                     if (targetIndex >= 0)
                     {
-                        int lineToDeleteIndex = targetIndex + 5;
+                        int lineToDeleteIndex = targetIndex + int.Parse(searchText[3]);
                         if (lineToDeleteIndex < target.Length)
                         {
                             Array.Copy(target, lineToDeleteIndex + 1, target, lineToDeleteIndex, target.Length - lineToDeleteIndex - 1);
@@ -263,16 +258,16 @@ namespace LlamaToolkit
             string pathToCoreEngine;
             string pathToBackup;
             string currentDir = Directory.GetCurrentDirectory();
-            string replacementFile;
+            string pathToSearchText = Path.Combine(currentDir, "llama", "search.txt");
+            string[] searchText = File.ReadAllLines(pathToSearchText);
             if (args.Length == 2)
             {
                 string userIn = args[1];
-                replacementFile = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.bak");
-                bool valid = (CheckGameDirectory(userIn) && CheckCoreEngine(userIn));
+                bool valid = (CheckGameDirectory(userIn) && CheckBackupTargetFile(userIn, searchText[1]));
                 if (valid)
                 {
-                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.js");
-                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "NonCombatMenu.bak");
+                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", searchText[0]);
+                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", searchText[1]);
                     File.Delete(pathToCoreEngine);
                     File.Move(pathToBackup, pathToCoreEngine);
                     Console.WriteLine("Extractor removed from game.");
@@ -281,19 +276,18 @@ namespace LlamaToolkit
                 {
                     Console.WriteLine("Error: Game not found!");
                 }
-                else if (!CheckCoreEngine(userIn))
+                else if (!CheckBackupTargetFile(userIn, searchText[1]))
                 {
                     Console.WriteLine("Error: Extractor was not installed!");
                 }
             }
             else
             {
-                replacementFile = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.bak");
-                bool valid = (CheckGameDirectory(currentDir) && CheckCoreEngine(currentDir));
+                bool valid = (CheckGameDirectory(currentDir) && CheckBackupTargetFile(currentDir, searchText[1]));
                 if (valid)
                 {
-                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.js");
-                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "NonCombatMenu.bak");
+                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", searchText[0]);
+                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", searchText[1]);
                     File.Delete(pathToCoreEngine);
                     File.Move(pathToBackup, pathToCoreEngine);
                     Console.WriteLine("Extractor removed from game.");
@@ -302,7 +296,7 @@ namespace LlamaToolkit
                 {
                     Console.WriteLine("Error: Game not found!");
                 }
-                else if (!CheckCoreEngine(currentDir))
+                else if (!CheckBackupTargetFile(currentDir, searchText[1]))
                 {
                     Console.WriteLine("Error: Extractor was not installed!");
                 }
@@ -456,7 +450,7 @@ namespace LlamaToolkit
             Extract(args);
             using (Process myProcess = Process.Start(pathToGameExe))
             {
-                Thread.Sleep(3000);
+                Thread.Sleep(2000);
                 myProcess.CloseMainWindow();
                 myProcess.Close();
             }

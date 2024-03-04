@@ -7,7 +7,7 @@ namespace LlamaToolkit
     {
         static void Main(string[] args)
         {
-            string firstLine = args[0];
+            string firstLine = args[0].ToLower();
             var watch = System.Diagnostics.Stopwatch.StartNew();
             switch (firstLine)
             {
@@ -24,7 +24,7 @@ namespace LlamaToolkit
                     Console.WriteLine("Usage: LlamaToolkit <mode> <arguments>");
                     Console.WriteLine("Modes: decrypt, dedrm, deob");
                     Console.WriteLine("Decryption: LlamaToolkit decrypt <inputFileOrDir> <outputDir>");
-                    Console.WriteLine("DeDRM: LlamaToolkit dedrm <gameFolder>");
+                    Console.WriteLine("DeDRM: LlamaToolkit dedrm <gameDir>");
                     Console.WriteLine("If no arguments are provided, LlamaToolkit will assume it is inside of the game directory (containing game.exe).");
                     Console.WriteLine("Deobfuscate: LlamaToolkit deob <func> <in hdr file> <in dtl file>");
                     Console.WriteLine("You must run the code through obf-io.deobfuscate.io before processing it with LlamaToolkit. See README for details.");

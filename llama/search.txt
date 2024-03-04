@@ -1,0 +1,1 @@
+Yanfly.Core.Game_Interpreter_pluginCommand =

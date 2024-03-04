@@ -53,6 +53,16 @@ LlamaToolkit dedrm <gameDir>
 
 ### Extract and Deobfuscate (Automatically)
 
+Go to the `llama/decode-js` folder and use `npm i` to install dependencies.
+
+Then run the command:
+
+```
+LlamaToolkit autopwn <gameDir>
+```
+
+If no arguments are provided, LlamaToolkit will assume that it is currently inside of the game directory.
+
 This command will carry out the following operations:
 
 1. Inject the code extractor into the game.
@@ -60,10 +70,6 @@ This command will carry out the following operations:
 3. Kill the game.
 4. Remove the code extractor from the game.
 5. Deobfuscate the code in `input.js`.
-
-```
-LlamaToolkit autopwn <gameDir>
-```
 
 ### ReDRM
 
@@ -109,4 +115,4 @@ The rest of the code in this repository is licensed under the GLWTS license.
 
 ![andrew](/docs/cs.png)
 
-*Last updated 2/29/2024 for game version 2.0.9*
+*Last updated 3/01/2024 for game version 2.0.9*

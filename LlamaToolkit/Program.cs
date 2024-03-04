@@ -202,7 +202,7 @@ namespace LlamaToolkit
                 }
                 else
                 {
-                    Console.WriteLine("Error: Game not found, or extractor is already installed!");
+                    Console.WriteLine("Error: Game not found, or extractor was already installed!");
                 }
             }
             else
@@ -236,7 +236,7 @@ namespace LlamaToolkit
                 }
                 else
                 {
-                    Console.WriteLine("Error: Game not found, or extractor is already installed!");
+                    Console.WriteLine("Error: Game not found, or extractor was already installed!");
                 }
             }
         }
@@ -246,11 +246,12 @@ namespace LlamaToolkit
             string pathToCoreEngine;
             string pathToBackup;
             string currentDir = Directory.GetCurrentDirectory();
-            string replacementFile = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+            string replacementFile;
             if (args.Length == 2)
             {
                 string userIn = args[1];
-                bool valid = (CheckGameDirectory(userIn) && CheckCoreEngine(userIn) && File.Exists(replacementFile));
+                replacementFile = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                bool valid = (CheckGameDirectory(userIn) && CheckCoreEngine(userIn));
                 if (valid)
                 {
                     pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.js");
@@ -259,14 +260,19 @@ namespace LlamaToolkit
                     File.Move(pathToBackup, pathToCoreEngine);
                     Console.WriteLine("Extractor removed from game.");
                 }
-                else
+                else if (!CheckGameDirectory(userIn))
                 {
-                    Console.WriteLine("Error: Game not found, or extractor was not installed!");
+                    Console.WriteLine("Error: Game not found!");
+                }
+                else if (!CheckCoreEngine(userIn))
+                {
+                    Console.WriteLine("Error: Extractor was not installed!");
                 }
             }
             else
             {
-                bool valid = (CheckGameDirectory(currentDir) && CheckCoreEngine(currentDir) && File.Exists(replacementFile));
+                replacementFile = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                bool valid = (CheckGameDirectory(currentDir) && CheckCoreEngine(currentDir));
                 if (valid)
                 {
                     pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.js");
@@ -275,9 +281,13 @@ namespace LlamaToolkit
                     File.Move(pathToBackup, pathToCoreEngine);
                     Console.WriteLine("Extractor removed from game.");
                 }
-                else
+                else if (!CheckGameDirectory(currentDir))
                 {
-                    Console.WriteLine("Error: Game not found, or extractor was not installed!");
+                    Console.WriteLine("Error: Game not found!");
+                }
+                else if (!CheckCoreEngine(currentDir))
+                {
+                    Console.WriteLine("Error: Extractor was not installed!");
                 }
             }
         }
@@ -397,14 +407,33 @@ namespace LlamaToolkit
             Console.WriteLine("Starting autopwn.");
             string currentDir = Directory.GetCurrentDirectory();
             string pathToGameExe;
+            string pathToInput;
             if (args.Length == 2)
             {
                 string userIn = args[1];
-                pathToGameExe = Path.Combine(userIn, "Game.exe");
+                if (CheckGameDirectory(userIn))
+                {
+                    pathToGameExe = Path.Combine(userIn, "Game.exe");
+                    pathToInput = Path.Combine(userIn, "input.js");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found!");
+                    return;
+                }
             }
             else
             {
-                pathToGameExe = Path.Combine(currentDir, "Game.exe");
+                if (CheckGameDirectory(currentDir))
+                {
+                    pathToGameExe = Path.Combine(currentDir, "Game.exe");
+                    pathToInput = Path.Combine(currentDir, "input.js");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found!");
+                    return;
+                }
             }
             Extract(args);
             using (Process myProcess = Process.Start(pathToGameExe))
@@ -414,7 +443,7 @@ namespace LlamaToolkit
                 myProcess.Close();
             }
             Restore(args);
-            string[] input = ["hoge", "input.js"];
+            string[] input = ["hoge", pathToInput];
             await Deobfuscate(input);
             Console.WriteLine("Autopwn completed.");
         }
@@ -506,6 +535,5 @@ namespace LlamaToolkit
             string sig = "00000NEMLEI00000";
             return sig;
         }
-
     }
 }

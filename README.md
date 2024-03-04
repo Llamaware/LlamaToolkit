@@ -63,7 +63,7 @@ All calls to that function will be deobfuscated, and hexadecimal numbers will be
 
 ### Credits
 
-LlamaToolkit uses the `Microsoft.CodeAnalysis` package, which is licensed under the [MIT License](https://github.com/dotnet/roslyn/blob/main/License.txt).
+LlamaToolkit uses the `Microsoft.CodeAnalysis` and `Microsoft.ClearScript.V8` packages, which are licensed under the MIT License. [1](https://github.com/dotnet/roslyn/blob/main/License.txt), [2](https://github.com/microsoft/ClearScript/blob/master/License.txt)
 
 The deobfuscator is based on [EPJsDeOb: JavaScript Deobfuscation tool](https://github.com/surya-rakanta/EPJsDeOb).
 

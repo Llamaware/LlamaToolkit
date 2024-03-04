@@ -92,3 +92,5 @@ LlamaToolkit uses the `Microsoft.CodeAnalysis` and `Microsoft.ClearScript.V8` pa
 The deobfuscator is based on [EPJsDeOb: JavaScript Deobfuscation tool](https://github.com/surya-rakanta/EPJsDeOb).
 
 ![andrew](/docs/cs.png)
+
+*Last updated 2/24/2024 for game version 2.0.9*

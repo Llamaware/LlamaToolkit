@@ -5,7 +5,7 @@
 
 ![tsunderecoded](/docs/tsun.png)
 
-A decompilation toolkit for The Coffin of Andy and Leyley. (Formerly IelmenDecryptor)
+A decompilation toolkit for The Coffin of Andy and Leyley.
 
 ### Prerequisites
 
@@ -115,4 +115,4 @@ The deobfuscator uses [decode-js](https://github.com/echo094/decode-js), which i
 
 ![andrew](/docs/cs.png)
 
-*Last updated 3/01/2024 for game version 2.0.10*
+*Last updated 3/03/2024 for game version 2.0.11*

@@ -79,7 +79,7 @@ Restore the DRM.
 LlamaToolkit redrm <gameDir>
 ```
 
-### Deobfuscate (Manually)
+### Extract and Deobfuscate (Manually)
 
 ![abc](/docs/abc.png)
 

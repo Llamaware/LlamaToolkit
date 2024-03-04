@@ -1,1 +1,4 @@
-Window_NCMenu.prototype.makeCommandList = function() {
+YEP_SaveEventLocations.js
+YEP_SaveEventLocations.bak
+Yanfly.SEL.Game_CharacterBase_setDirection =
+5

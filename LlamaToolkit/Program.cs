@@ -17,17 +17,30 @@ namespace LlamaToolkit
                 case "dedrm":
                     DeDRM(args);
                     break;
+                case "redrm":
+                    ReDRM(args);
+                    break;
+                case "extract":
+                    Extract(args);
+                    break;
+                case "restore":
+                    Restore(args);
+                    break;
                 case "deob":
                     Deobfuscate(args);
                     break;
                 default:
+                    Console.WriteLine("LlamaToolkit 2.0 for TCAL version 2.0.9");
                     Console.WriteLine("Usage: LlamaToolkit <mode> <arguments>");
-                    Console.WriteLine("Modes: decrypt, dedrm, deob");
+                    Console.WriteLine("Modes: decrypt, dedrm, redrm, extract, restore, deob");
                     Console.WriteLine("Decryption: LlamaToolkit decrypt <inputFileOrDir> <outputDir>");
                     Console.WriteLine("DeDRM: LlamaToolkit dedrm <gameDir>");
+                    Console.WriteLine("ReDRM: LlamaToolkit redrm <gameDir>");
+                    Console.WriteLine("Extract: LlamaToolkit extract <gameDir>");
+                    Console.WriteLine("Restore: LlamaToolkit restore <gameDir>");
                     Console.WriteLine("If no arguments are provided, LlamaToolkit will assume it is inside of the game directory (containing game.exe).");
                     Console.WriteLine("Deobfuscate: LlamaToolkit deob <func> <in hdr file> <in dtl file>");
-                    Console.WriteLine("You must run the code through obf-io.deobfuscate.io before processing it with LlamaToolkit. See README for details.");
+                    Console.WriteLine("You must run the extracted code through obf-io.deobfuscate.io before processing it with LlamaToolkit. See README for details.");
                     break;
             }
             watch.Stop();
@@ -46,6 +59,12 @@ namespace LlamaToolkit
         {
             string greenworks = Path.Combine(folder, "www", "greenworks", "greenworks.bak");
             return File.Exists(greenworks);
+        }
+
+        static bool CheckCoreEngine(string folder)
+        {
+            string coreEngine = Path.Combine(folder, "www", "js", "plugins","YEP_CoreEngine.bak");
+            return File.Exists(coreEngine);
         }
 
         static void DeDRM(string[] args)
@@ -89,6 +108,165 @@ namespace LlamaToolkit
                 }
             }
         }
+
+        static void ReDRM(string[] args)
+        {
+            string userIn;
+            string pathToGreenworks;
+            string pathToBackup;
+            string currentDir = Directory.GetCurrentDirectory();
+            string replacementFile = Path.Combine(currentDir, "www", "greenworks", "greenworks.bak");
+            if (args.Length == 2)
+            {
+                userIn = args[1];
+                bool valid = (CheckGameDirectory(userIn) && CheckDRM(userIn) && File.Exists(replacementFile));
+                if (valid)
+                {
+                    pathToGreenworks = Path.Combine(userIn, "www", "greenworks", "greenworks.js");
+                    pathToBackup = Path.Combine(userIn, "www", "greenworks", "greenworks.bak");
+                    File.Delete(pathToGreenworks);
+                    File.Move(pathToBackup, pathToGreenworks);
+                    Console.WriteLine("DRM restored.");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found, or DRM is already present!");
+                }
+            }
+            else
+            {
+                bool valid = (CheckGameDirectory(currentDir) && CheckDRM(currentDir) && File.Exists(replacementFile));
+                if (valid)
+                {
+                    pathToGreenworks = Path.Combine(currentDir, "www", "greenworks", "greenworks.js");
+                    pathToBackup = Path.Combine(currentDir, "www", "greenworks", "greenworks.bak");
+                    File.Delete(pathToGreenworks);
+                    File.Move(pathToBackup, pathToGreenworks);
+                    Console.WriteLine("DRM restored.");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found, or DRM is already present!");
+                }
+            }
+        }
+
+        static void Extract(string[] args)
+        {
+            string userIn;
+            string pathToCoreEngine;
+            string pathToBackup;
+            string currentDir = Directory.GetCurrentDirectory();
+            string replacementFile = Path.Combine(currentDir, "llama", "extractor.js");
+            if (args.Length == 2)
+            {
+                userIn = args[1];
+                bool valid = (CheckGameDirectory(userIn) && !CheckCoreEngine(userIn) && File.Exists(replacementFile));
+                if (valid)
+                {
+                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.js");
+                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    string[] target = File.ReadAllLines(pathToCoreEngine);
+                    File.Move(pathToCoreEngine, pathToBackup);
+                    int targetIndex = Array.FindIndex(target, line => line.Contains("Yanfly.Core.Game_Interpreter_pluginCommand ="));
+
+                    if (targetIndex >= 0)
+                    {
+                        Array.Copy(target, targetIndex + 2, target, targetIndex, target.Length - targetIndex - 2);
+                        Array.Resize(ref target, target.Length - 2);
+                        string[] extractor = File.ReadAllLines(replacementFile);
+                        Array.Resize(ref target, target.Length + extractor.Length);
+                        Array.Copy(target, targetIndex, target, targetIndex + extractor.Length, target.Length - targetIndex - extractor.Length);
+                        Array.Copy(extractor, 0, target, targetIndex, extractor.Length);
+                        File.WriteAllLines(pathToCoreEngine, target);
+                        Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Target line not found.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found, or extractor is already installed!");
+                }
+            }
+            else
+            {
+                bool valid = (CheckGameDirectory(currentDir) && !CheckCoreEngine(currentDir) && File.Exists(replacementFile));
+                if (valid)
+                {
+                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.js");
+                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    string[] target = File.ReadAllLines(pathToCoreEngine);
+                    File.Move(pathToCoreEngine, pathToBackup);
+                    int targetIndex = Array.FindIndex(target, line => line.Contains("Yanfly.Core.Game_Interpreter_pluginCommand ="));
+
+                    if (targetIndex >= 0)
+                    {
+                        Array.Copy(target, targetIndex + 2, target, targetIndex, target.Length - targetIndex - 2);
+                        Array.Resize(ref target, target.Length - 2);
+                        string[] extractor = File.ReadAllLines(replacementFile);
+                        Array.Resize(ref target, target.Length + extractor.Length);
+                        Array.Copy(target, targetIndex, target, targetIndex + extractor.Length, target.Length - targetIndex - extractor.Length);
+                        Array.Copy(extractor, 0, target, targetIndex, extractor.Length);
+                        File.WriteAllLines(pathToCoreEngine, target);
+                        Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Target line not found.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found, or extractor is already installed!");
+                }
+            }
+        }
+
+        static void Restore(string[] args)
+        {
+            string userIn;
+            string pathToCoreEngine;
+            string pathToBackup;
+            string currentDir = Directory.GetCurrentDirectory();
+            string replacementFile = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+            if (args.Length == 2)
+            {
+                userIn = args[1];
+                bool valid = (CheckGameDirectory(userIn) && CheckCoreEngine(userIn) && File.Exists(replacementFile));
+                if (valid)
+                {
+                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.js");
+                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    File.Delete(pathToCoreEngine);
+                    File.Move(pathToBackup, pathToCoreEngine);
+                    Console.WriteLine("Extractor removed from game.");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found, or extractor was not installed!");
+                }
+            }
+            else
+            {
+                bool valid = (CheckGameDirectory(currentDir) && CheckCoreEngine(currentDir) && File.Exists(replacementFile));
+                if (valid)
+                {
+                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.js");
+                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", "YEP_CoreEngine.bak");
+                    File.Delete(pathToCoreEngine);
+                    File.Move(pathToBackup, pathToCoreEngine);
+                    Console.WriteLine("Extractor removed from game.");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Game not found, or extractor was not installed!");
+                }
+            }
+        }
+
         static void DecryptionFailure(string userIn)
         {
             Console.WriteLine("Error: Decoded signature doesn't match file header! Is the key wrong or the input file not encrypted?");

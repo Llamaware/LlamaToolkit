@@ -5,9 +5,15 @@
 
 A decompilation toolkit for The Coffin of Andy and Leyley. (Formerly IelmenDecryptor)
 
+### Prerequisites
+
+To run the compiled binaries, you need the .NET 8.0 Runtime to be installed.
+
+You need a Node.js installation to use the deobfuscator.
+
 ### Usage
 
-Place the program and the `llama` folder in the main directory that contains `game.exe` and run LlamaToolkit from the command line.
+Place the program and the `llama` folder in the main directory that contains `Game.exe` and run LlamaToolkit from the command line.
 
 ```
 LlamaToolkit <mode> <arguments>
@@ -45,33 +51,25 @@ If no arguments are provided, LlamaToolkit will assume that it is currently insi
 LlamaToolkit dedrm <gameDir>
 ```
 
-### Extract
+### Extract and Deobfuscate (Automatically)
 
-Acquire the obfuscated game code by injecting a script into the game.
+Go to the `llama/decode-js` folder and use `npm i` to install dependencies.
 
-```
-LlamaToolkit extract <gameDir>
-```
-
-The game will dump obfuscated code to a new file named `obfuscated.js` on the next startup.
-
-### Deobfuscate (Manually)
-
-![abc](/docs/abc.png)
-
-Using any IDE, format the obfuscated code you obtained with the extractor.
-
-Split the obfuscated code into two files. One file will be `header.js` containing the large string array and the rotating functions. The other file `detail.js` will contain the rest of the code, beginning from the line `use strict;`
-
-Run the contents of `detail.js` through [Obfuscator.io Deobfuscator](https://obf-io.deobfuscate.io/).
-
-Then run LlamaToolkit `deob` on both files, giving it the name of the replacement function (in this case, it's `_0x59166b`).
+Then run the command:
 
 ```
-LlamaToolkit deob _0x59166b header.js detail.js
+LlamaToolkit autopwn <gameDir>
 ```
 
-All calls to that function will be deobfuscated, and hexadecimal numbers will be replaced with decimal numbers. The new file will be saved to `detail-result.js`.
+If no arguments are provided, LlamaToolkit will assume that it is currently inside of the game directory.
+
+This command will carry out the following operations:
+
+1. Inject the code extractor into the game.
+2. Launch the game and dump obfuscated code to `input.js`.
+3. Kill the game.
+4. Remove the code extractor from the game.
+5. Deobfuscate the code in `input.js`.
 
 ### ReDRM
 
@@ -81,9 +79,27 @@ Restore the DRM.
 LlamaToolkit redrm <gameDir>
 ```
 
-### Restore
+### Extract and Deobfuscate (Manually)
 
-Remove the code extractor from the game.
+![abc](/docs/abc.png)
+
+Acquire the obfuscated game code by injecting a script into the game:
+
+```
+LlamaToolkit extract <gameDir>
+```
+
+The game will dump obfuscated code to a new file named `input.js` on the next startup.
+
+Run the deobfuscator on this file:
+
+```
+LlamaToolkit deob input.js
+```
+
+The new file will be saved to `output.js`.
+
+Remove the code extractor from the game:
 
 ```
 LlamaToolkit restore <gameDir>
@@ -91,10 +107,12 @@ LlamaToolkit restore <gameDir>
 
 ### Credits
 
-LlamaToolkit uses the `Microsoft.CodeAnalysis` and `Microsoft.ClearScript.V8` packages, which are licensed under the MIT License. [1](https://github.com/dotnet/roslyn/blob/main/License.txt), [2](https://github.com/microsoft/ClearScript/blob/master/License.txt)
+LlamaToolkit uses the `Jering.Javascript.NodeJS` package, which has its own [license](https://github.com/JeringTech/Javascript.NodeJS/blob/master/License.md). The 
 
-The deobfuscator is based on [EPJsDeOb: JavaScript Deobfuscation tool](https://github.com/surya-rakanta/EPJsDeOb).
+The deobfuscator uses [decode-js](https://github.com/echo094/decode-js), which is licensed under the MIT License.
+
+The rest of the code in this repository is licensed under the GLWTS license.
 
 ![andrew](/docs/cs.png)
 
-*Last updated 2/26/2024 for game version 2.0.9*
+*Last updated 3/01/2024 for game version 2.0.9*

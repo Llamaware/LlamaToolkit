@@ -115,4 +115,4 @@ The deobfuscator uses [decode-js](https://github.com/echo094/decode-js), which i
 
 ![andrew](/docs/cs.png)
 
-*Last updated 3/03/2024 for game version 2.0.11*
+*Last updated 8/13/2024 for game version 2.0.14*

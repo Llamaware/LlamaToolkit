@@ -1,4 +1,3 @@
-YEP_SaveEventLocations.js
-YEP_SaveEventLocations.bak
-Yanfly.SEL.Game_CharacterBase_setDirection =
-5
+Irina_VisualNovelBusts.js
+Irina_VisualNovelBusts.bak
+1164

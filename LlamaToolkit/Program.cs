@@ -166,92 +166,53 @@ namespace LlamaToolkit
 
         static void Extract(string[] args)
         {
-            string pathToCoreEngine;
-            string pathToBackup;
             string currentDir = Directory.GetCurrentDirectory();
             string pathToSearchText = Path.Combine(currentDir, "llama", "search.txt");
             string replacementFile = Path.Combine(currentDir, "llama", "extractor.js");
             string[] searchText = File.ReadAllLines(pathToSearchText);
-            if (args.Length == 2)
+            string userIn = args.Length == 2 ? args[1] : currentDir;
+            if (IsValidSetup(userIn, searchText[1], replacementFile))
             {
-                string userIn = args[1];
-                bool valid = (CheckGameDirectory(userIn) && !CheckBackupTargetFile(userIn, searchText[1]) && File.Exists(replacementFile));
-                if (valid)
-                {
-                    pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", searchText[0]);
-                    pathToBackup = Path.Combine(userIn, "www", "js", "plugins", searchText[1]);
-                    string[] target = File.ReadAllLines(pathToCoreEngine);
-                    File.Move(pathToCoreEngine, pathToBackup);
-                    int targetIndex = Array.FindIndex(target, line => line.Contains(searchText[2]));
-                    if (targetIndex >= 0)
-                    {
-                        int lineToDeleteIndex = targetIndex + int.Parse(searchText[3]);
-                        if (lineToDeleteIndex < target.Length)
-                        {
-                            Array.Copy(target, lineToDeleteIndex + 1, target, lineToDeleteIndex, target.Length - lineToDeleteIndex - 1);
-                            Array.Resize(ref target, target.Length - 1);
-                            string[] extractor = File.ReadAllLines(replacementFile);
-                            Array.Resize(ref target, target.Length + extractor.Length);
-                            Array.Copy(target, lineToDeleteIndex, target, lineToDeleteIndex + extractor.Length, target.Length - lineToDeleteIndex - extractor.Length);
-                            Array.Copy(extractor, 0, target, lineToDeleteIndex, extractor.Length);
-                            File.WriteAllLines(pathToCoreEngine, target);
-                            Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Error: Not enough lines after the target line to delete and replace.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Error: Target line not found!");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Error: Game not found, or extractor was already installed!");
-                }
+                InjectExtractor(userIn, searchText, replacementFile);
+                Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
             }
             else
             {
-                bool valid = (CheckGameDirectory(currentDir) && !CheckBackupTargetFile(currentDir, searchText[1]) && File.Exists(replacementFile));
-                if (valid)
-                {
-                    pathToCoreEngine = Path.Combine(currentDir, "www", "js", "plugins", searchText[0]);
-                    pathToBackup = Path.Combine(currentDir, "www", "js", "plugins", searchText[1]);
-                    string[] target = File.ReadAllLines(pathToCoreEngine);
-                    File.Move(pathToCoreEngine, pathToBackup);
-                    int targetIndex = Array.FindIndex(target, line => line.Contains(searchText[2]));
-                    if (targetIndex >= 0)
-                    {
-                        int lineToDeleteIndex = targetIndex + int.Parse(searchText[3]);
-                        if (lineToDeleteIndex < target.Length)
-                        {
-                            Array.Copy(target, lineToDeleteIndex + 1, target, lineToDeleteIndex, target.Length - lineToDeleteIndex - 1);
-                            Array.Resize(ref target, target.Length - 1);
-                            string[] extractor = File.ReadAllLines(replacementFile);
-                            Array.Resize(ref target, target.Length + extractor.Length);
-                            Array.Copy(target, lineToDeleteIndex, target, lineToDeleteIndex + extractor.Length, target.Length - lineToDeleteIndex - extractor.Length);
-                            Array.Copy(extractor, 0, target, lineToDeleteIndex, extractor.Length);
-                            File.WriteAllLines(pathToCoreEngine, target);
-                            Console.WriteLine("Extractor injected. Game will dump obfuscated code on next startup.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Error: Not enough lines after the target line to delete and replace.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Error: Target line not found!");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Error: Game not found, or extractor was already installed!");
-                }
+                Console.WriteLine("Error: Game not found, or extractor was already installed!");
             }
         }
+
+        static bool IsValidSetup(string userIn, string backupFileName, string replacementFile)
+        {
+            return CheckGameDirectory(userIn) && !CheckBackupTargetFile(userIn, backupFileName) && File.Exists(replacementFile);
+        }
+
+        static void InjectExtractor(string userIn, string[] searchText, string replacementFile)
+        {
+            string pathToCoreEngine = Path.Combine(userIn, "www", "js", "plugins", searchText[0]);
+            string pathToBackup = Path.Combine(userIn, "www", "js", "plugins", searchText[1]);
+            string[] target = File.ReadAllLines(pathToCoreEngine);
+            File.Move(pathToCoreEngine, pathToBackup);
+            int lineToDeleteIndex = int.Parse(searchText[2]) - 1;
+            if (lineToDeleteIndex >= 0 && lineToDeleteIndex < target.Length)
+            {
+                if (lineToDeleteIndex < target.Length - 1)
+                {
+                    Array.Copy(target, lineToDeleteIndex + 1, target, lineToDeleteIndex, target.Length - lineToDeleteIndex - 1);
+                }
+                Array.Resize(ref target, target.Length - 1);
+                string[] extractor = File.ReadAllLines(replacementFile);
+                Array.Resize(ref target, target.Length + extractor.Length);
+                Array.Copy(target, lineToDeleteIndex, target, lineToDeleteIndex + extractor.Length, target.Length - lineToDeleteIndex - extractor.Length);
+                Array.Copy(extractor, 0, target, lineToDeleteIndex, extractor.Length);
+                File.WriteAllLines(pathToCoreEngine, target);
+            }
+            else
+            {
+                Console.WriteLine("Error: Index out of range!");
+            }
+        }
+
 
         static void Restore(string[] args)
         {

@@ -44,7 +44,7 @@ namespace LlamaToolkit
                     await Autopwn(args);
                     break;
                 default:
-                    Console.WriteLine("LlamaToolkit 2.0 for TCAL version 2.0.11");
+                    Console.WriteLine("LlamaToolkit 2.0 for TCAL");
                     Console.WriteLine("Usage: LlamaToolkit <mode> <arguments>");
                     Console.WriteLine("Modes: decrypt, dedrm, redrm, autopwn, extract, restore, deob");
                     Console.WriteLine("Decryption: LlamaToolkit decrypt <inputFileOrDir> <outputDir>");

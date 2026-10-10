@@ -84,6 +84,8 @@ Tests that need the real game look for it at `../nwjs-test-game`, or wherever `L
 
 To release, set `__version__` in `src/llamatoolkit/__init__.py`, then push a matching tag (e.g. `v3.0.1`). This builds the exe and publishes a GitHub release. Start the release notes with the game version it was tested against.
 
+The release zip ships `README.txt`, a plain-text copy of the user-facing parts of this file. Update it whenever usage changes.
+
 ### Credits
 
 The deobfuscator uses [PyJSClear](https://github.com/intezer/PyJSClear), which is licensed under the Apache-2.0 License.

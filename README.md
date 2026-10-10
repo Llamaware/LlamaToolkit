@@ -1,118 +1,91 @@
-
-# LlamaToolkit 2.0
+# LlamaToolkit 3.0
 
 [![GLWTPL](https://img.shields.io/badge/GLWT-Public_License-red.svg)](https://github.com/me-shaon/GLWTPL)
 
-![tsunderecoded](/docs/tsun.png)
+![tsunderecoded](docs/tsun.png)
 
 A decompilation toolkit for The Coffin of Andy and Leyley.
 
+Works with game version 3.x (Decay), tested with game version 3.0.13.
+
 ### Prerequisites
 
-To run the compiled binaries, you need the .NET 8.0 Runtime to be installed.
-
-You need a Node.js installation to use the deobfuscator.
+None if running the .exe. Python 3.10+ if running from source.
 
 ### Usage
 
-Place the program and the `llama` folder in the main directory that contains `Game.exe` and run LlamaToolkit from the command line.
+Place `LlamaToolkit.exe` in the game directory (the one containing `Game.exe`) and double-click it to open the menu. Results are saved in the game directory. If the game isn't found, you'll be asked to drag the game folder onto the window.
+
+The commands below are for running from the command line. Pass the game directory as an argument, or run from inside it.
 
 ```
-LlamaToolkit <mode> <arguments>
+LlamaToolkit <command> [arguments]
 ```
+
+Run `LlamaToolkit <command> -h` for details on any command.
 
 ### Decrypt
 
-Only `.k9a` files can be decrypted. The filenames of all encrypted files must be unchanged.
-
-Arguments:
-
-`inputFileOrDir`: Specify the input directory or file. If directory, it will traverse all folders in the directory recursively.
-
-`outputDir`: Specify the output directory.
-
-You must pass both arguments at once. Both relative and absolute paths are supported.
-
-If no arguments are provided, LlamaToolkit will only check the `audio`, `data`, and `img` folders in the game directory.
+Decrypts images, audio and data. Encrypted files have no extension; the correct one (`.png`, `.ogg`, `.json`) is added on output. File names must be unchanged, since they are part of the key. Unencrypted files are copied as-is.
 
 ```
-LlamaToolkit decrypt <inputFileOrDir> <outputDir>
+LlamaToolkit decrypt [input] [output]
+```
+
+`input` can be a single file, any folder (traversed recursively), or the game directory. For the game directory, only `www/audio`, `www/data` and `www/img` are processed. Defaults to the game in the current directory.
+
+`output` defaults to `decrypted`.
+
+### Deobfuscate
+
+Extracts the game's hidden main script and deobfuscates it to `script_deobfuscated.js`. The game does not need to be launched or modified.
+
+```
+LlamaToolkit deob [gameDir] [-o script_deobfuscated.js]
+```
+
+To deobfuscate a script you already have, use `-f`:
+
+```
+LlamaToolkit deob -f script_obfuscated.js
+```
+
+To get the raw obfuscated script without deobfuscating it:
+
+```
+LlamaToolkit dump [gameDir] [-o script_obfuscated.js]
 ```
 
 ### DeDRM
 
-Allows the game to be launched without Steam.
-
-Arguments:
-
-`gameDir`: Specify the game directory.
-
-If no arguments are provided, LlamaToolkit will assume that it is currently inside of the game directory.
+Allows the game to be launched without Steam. The original `greenworks.js` is kept as `greenworks.bak`.
 
 ```
-LlamaToolkit dedrm <gameDir>
+LlamaToolkit dedrm [gameDir]
 ```
-
-### Extract and Deobfuscate (Automatically)
-
-Go to the `llama/decode-js` folder and use `npm i` to install dependencies.
-
-Then run the command:
-
-```
-LlamaToolkit autopwn <gameDir>
-```
-
-If no arguments are provided, LlamaToolkit will assume that it is currently inside of the game directory.
-
-This command will carry out the following operations:
-
-1. Inject the code extractor into the game.
-2. Launch the game and dump obfuscated code to `input.js`.
-3. Kill the game.
-4. Remove the code extractor from the game.
-5. Deobfuscate the code in `input.js` and save it to `output.js`.
 
 ### ReDRM
 
-Restore the DRM.
+Restores the DRM.
 
 ```
-LlamaToolkit redrm <gameDir>
+LlamaToolkit redrm [gameDir]
 ```
 
-### Extract and Deobfuscate (Manually)
-
-![abc](/docs/abc.png)
-
-Acquire the obfuscated game code by injecting a script into the game:
+### Building from source
 
 ```
-LlamaToolkit extract <gameDir>
+pip install -e ".[dev]"
+pytest
+pyinstaller --onefile --name LlamaToolkit --paths src --collect-data llamatoolkit scripts/entry.py
 ```
 
-The game will dump obfuscated code to a new file named `input.js` on the next startup.
+Tests that need the real game look for it at `../nwjs-test-game`, or wherever `LLAMA_GAME_DIR` points, and are skipped if it is missing.
 
-Run the deobfuscator on this file:
-
-```
-LlamaToolkit deob input.js
-```
-
-The new file will be saved to `output.js`.
-
-Remove the code extractor from the game:
-
-```
-LlamaToolkit restore <gameDir>
-```
+To release, set `__version__` in `src/llamatoolkit/__init__.py`, then push a matching tag (e.g. `v3.0.1`). This builds the exe and publishes a GitHub release. Start the release notes with the game version it was tested against.
 
 ### Credits
 
-LlamaToolkit uses the `Jering.Javascript.NodeJS` package, which has its own [license](https://github.com/JeringTech/Javascript.NodeJS/blob/master/License.md).
+The deobfuscator uses [PyJSClear](https://github.com/intezer/PyJSClear), which is licensed under the Apache-2.0 License.
 
-The deobfuscator uses [decode-js](https://github.com/echo094/decode-js), which is licensed under the MIT License.
-
-![andrew](/docs/cs.png)
-
-*Last updated 8/13/2024 for game version 2.0.14*
+![andrew](docs/cs.png)

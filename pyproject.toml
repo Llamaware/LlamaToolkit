@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llamatoolkit"
+dynamic = ["version"]
+description = "Decompilation toolkit for The Coffin of Andy and Leyley"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["pyjsclear==0.1.7"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pyinstaller"]
+
+[project.scripts]
+llamatoolkit = "llamatoolkit.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "llamatoolkit.__version__" }
+
+[tool.setuptools.package-data]
+llamatoolkit = ["assets/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -14,6 +14,8 @@ None if running the .exe. Python 3.10+ if running from source.
 
 ### Usage
 
+![abc](docs/abc.png)
+
 Place `LlamaToolkit.exe` in the game directory (the one containing `Game.exe`) and double-click it to open the menu. Results are saved in the game directory. If the game isn't found, you'll be asked to drag the game folder onto the window.
 
 The commands below are for running from the command line. Pass the game directory as an argument, or run from inside it.

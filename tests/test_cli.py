@@ -36,6 +36,19 @@ def test_decrypt_game_dir(game, tmp_path):
     assert (out / "data" / "abcd.json").read_bytes() == b'{"x":1}'
 
 
+def test_decrypt_reports_recovered_seed(game, tmp_path, capsys):
+    data = game / "www" / "data"
+    data.mkdir()
+    (data / "renamed").write_bytes(encrypt(b'{"x":1}', "original"))
+    assert main(["decrypt", str(game), str(tmp_path / "out")]) == 0
+    out = capsys.readouterr().out
+    assert "1 file(s) did not match their name; seed recovered from the file header:" in out
+    assert str(data / "renamed") in out
+
+    assert main(["decrypt", str(data / "renamed"), str(tmp_path / "one")]) == 0
+    assert "seed recovered from the file header" in capsys.readouterr().out
+
+
 def test_dump(game, tmp_path):
     out = tmp_path / "input.js"
     assert main(["dump", str(game), "-o", str(out)]) == 0

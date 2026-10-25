@@ -2,7 +2,7 @@ import os
 import random
 
 import pytest
-from conftest import encrypt
+from conftest import REAL_GAME, encrypt
 
 from llamatoolkit import crypto
 
@@ -38,9 +38,32 @@ def test_partial_encryption_leaves_tail_untouched():
     assert crypto.decrypt(blob, "x") == plain
 
 
-def test_name_matters():
-    blob = encrypt(b'{"a":1}', "right")
-    assert crypto.decrypt(blob, "wrong") != b'{"a":1}'
+@pytest.mark.parametrize(
+    "plain",
+    [b"\x89PNG\r\n\x1a\n" + os.urandom(300), b"OggS" + os.urandom(300), b'{"a":1}', b"[1, 2, 3]",
+     '{"名前": "アンディ"}'.encode()],
+)
+@pytest.mark.parametrize("length", [0, 5, 128])
+def test_wrong_name_recovers(plain, length):
+    assert crypto.decrypt(encrypt(plain, "right", min(length, len(plain))), "wrong") == plain
+
+
+def test_non_ascii_json_keeps_right_name():
+    plain = '{"名前": 1}'.encode()
+    assert crypto.decrypt(encrypt(plain, "right"), "right") == plain
+
+
+def test_unknown_format_keeps_right_name():
+    plain = bytes(range(200))
+    assert crypto.decrypt(encrypt(plain, "right"), "right") == plain
+
+
+@pytest.mark.parametrize(
+    ("plain", "name", "source"),
+    [(b'{"a":1}', "right", "name"), (b'{"a":1}', "wrong", "header"), (bytes(range(200)), "right", "unverified")],
+)
+def test_decrypt_reports_seed_source(plain, name, source):
+    assert crypto.decrypt_with_source(encrypt(plain, "right"), name) == (plain, source)
 
 
 def test_rejects_unencrypted():
@@ -67,6 +90,28 @@ def test_decrypt_tree(tmp_path):
     stats = crypto.decrypt_tree(src, tmp_path / "out")
 
     assert (stats.decrypted, stats.copied, stats.failed) == (2, 1, [])
+    assert (stats.recovered, stats.unverified) == ([], [])
     assert (tmp_path / "out" / "sub" / "aaaa.ogg").read_bytes().startswith(b"OggS")
     assert (tmp_path / "out" / "bbbb.json").read_bytes() == b'{"k": 2}'
     assert (tmp_path / "out" / "Credits.txt").read_bytes() == b"plain text"
+
+
+def test_decrypt_tree_tracks_seed_source(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "renamed").write_bytes(encrypt(b'{"k": 2}', "original"))
+    (src / "odd").write_bytes(encrypt(bytes(range(200)), "odd"))
+
+    stats = crypto.decrypt_tree(src, tmp_path / "out")
+
+    assert (stats.recovered, stats.unverified) == ([src / "renamed"], [src / "odd"])
+    assert (tmp_path / "out" / "renamed.json").read_bytes() == b'{"k": 2}'
+
+
+@pytest.mark.skipif(not REAL_GAME.is_dir(), reason="real game not available")
+def test_real_assets_decrypt_without_name():
+    files = [p for p in (REAL_GAME / "www").rglob("*") if p.is_file() and crypto.is_encrypted(p.read_bytes())]
+    assert files
+    for p in files:
+        data = p.read_bytes()
+        assert crypto.decrypt(data, "renamed") == crypto.decrypt(data, p.name), p

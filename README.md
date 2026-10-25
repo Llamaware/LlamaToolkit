@@ -28,7 +28,7 @@ Run `LlamaToolkit <command> -h` for details on any command.
 
 ### Decrypt
 
-Decrypts images, audio and data. Encrypted files have no extension; the correct one (`.png`, `.ogg`, `.json`) is added on output. File names must be unchanged, since they are part of the key. Unencrypted files are copied as-is.
+Decrypts images, audio and data. Encrypted files have no extension; the correct one (`.png`, `.ogg`, `.json`) is added on output. File names are not needed for decryption. Unencrypted files are copied as-is.
 
 ```
 LlamaToolkit decrypt [input] [output]

@@ -17,7 +17,7 @@ Menu options:
 
   Decrypt assets
       Decrypts images, audio and data into a "decrypted" folder.
-      Do not rename the encrypted files; their names are part of the key.
+      Original file names are not required for decryption.
 
   Extract game script (deobfuscated)
       Saves the game's hidden main script as readable code

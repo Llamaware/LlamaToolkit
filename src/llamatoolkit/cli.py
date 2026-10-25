@@ -27,6 +27,16 @@ def _duration(seconds: float) -> str:
     return f"{seconds * 1000:.0f} ms" if seconds < 1 else f"{seconds:.2f} s"
 
 
+def _list_paths(what: str, paths: list[Path], limit: int = 10) -> None:
+    if not paths:
+        return
+    print(f"{len(paths)} file(s) {what}:")
+    for path in paths[:limit]:
+        print(f"  {path}")
+    if len(paths) > limit:
+        print(f"  ... and {len(paths) - limit} more (list them all with --verbose)")
+
+
 def cmd_decrypt(args: argparse.Namespace) -> None:
     from llamatoolkit import crypto
 
@@ -34,8 +44,12 @@ def cmd_decrypt(args: argparse.Namespace) -> None:
     src = Path(args.input) if args.input else GameDir.find().root
 
     if src.is_file():
-        out = crypto.decrypt_file(src, output)
-        print(f"Saved to {out}" if out else f"{src} is not encrypted; copied unchanged.")
+        result = crypto.decrypt_file(src, output)
+        if result is None:
+            print(f"{src} is not encrypted; copied unchanged.")
+        else:
+            out, source = result
+            print(f"Saved to {out}{crypto.SOURCE_NOTES[source]}")
         return
     if not src.is_dir():
         raise ToolkitError(f"{src} does not exist.")
@@ -59,6 +73,8 @@ def cmd_decrypt(args: argparse.Namespace) -> None:
     print(f"Decrypted {total.decrypted} files ({_size(total.bytes)}) in "
           f"{_duration(total.seconds)}, {_size(rate)}/s")
     print(f"{total.copied} copied unchanged, {len(total.failed)} failed -> {output}")
+    _list_paths("did not match their name; seed recovered from the file header", total.recovered)
+    _list_paths("have an unknown format; their first 8 bytes are unverified", total.unverified)
     if total.failed:
         raise ToolkitError(f"{len(total.failed)} file(s) failed to decrypt.")
 
